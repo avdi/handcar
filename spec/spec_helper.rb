@@ -15,4 +15,15 @@ Spec::Runner.configure do |config|
   # config.mock_with :rr
 end
 
+def reset_global_const(name, value)
+  if Object.const_defined?(name)
+    Object.instance_eval do remove_const name end
+  end
+  Object.const_set(name, value)
+end
+
+def traceline(text)
+  %r(_/_ \d+ _\\_ #{text})
+end
+
 # EOF
