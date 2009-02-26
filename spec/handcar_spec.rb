@@ -8,8 +8,11 @@ describe Handcar do
   end
 
   before :each do
-    Handcar.reset!
     @logger = StubLogger.new
+    @context = stub("Context")
+    @context.stub!(:with_trace_context).
+      and_yield(123, 456, 789, "foo_controller", "bar_action")
+    Handcar::Context.stub!(:instance).and_return(@context)
     reset_global_const(:RAILS_DEFAULT_LOGGER, @logger)
     @caller = ["yabba", "dabba", "doo"]
     Kernel.stub!(:caller).and_return(@caller)
@@ -20,12 +23,15 @@ describe Handcar do
   end
 
   describe "when tracing a line" do
+    before :each do
+      do_trace
+    end
+
     def do_trace
       hc_trace('foo')
     end
 
     it "should log trace and backtrace info" do
-      do_trace
       trace(0).type.should == 'user'
       trace(1).type.should == 'stack'
       trace(1).text.should == "yabba"
@@ -34,26 +40,23 @@ describe Handcar do
       trace(3).type.should == 'stack'
       trace(3).text.should == "doo"
     end
-  end
 
-  describe "when tracing a few lines" do
-    def do_trace
-      hc_trace('foo')
-      hc_trace('bar')
+    it "should log process ID" do
+      trace(0).pid.should == 456
     end
 
-    it "should number the traces" do
-      do_trace
-      trace(0).number.should == 1
-      trace(1).number.should == 1
-      trace(2).number.should == 1
-      trace(3).number.should == 1
-      trace(4).number.should == 2
-      trace(5).number.should == 2
-      trace(6).number.should == 2
-      trace(7).number.should == 2
+    it "should log thread ID" do
+      trace(0).tid.should == 789
+    end
+
+    it "should log controller" do
+      trace(0).controller.should == "foo_controller"
+    end
+    it "should log action" do
+      trace(0).action.should == "bar_action"
     end
   end
+
 end
 
 # EOF

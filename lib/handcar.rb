@@ -62,16 +62,25 @@ Handcar.require_all_libs_relative_to(__FILE__)
 
 module ::Kernel
   def hc_trace(text)
-    Handcar.with_trace_number do |n|
+    Handcar::Context.instance.with_trace_context do
+      |n, pid, tid, controller, action|
       RAILS_DEFAULT_LOGGER.debug(Handcar::TraceLine.new(
-          :number => n,
-          :type   => 'user',
-          :text   => text).to_s)
+          :number     => n,
+          :pid        => pid,
+          :tid        => tid,
+          :controller => controller,
+          :action     => action,
+          :type       => 'user',
+          :text       => text).to_s)
       Kernel.caller.each do |frame|
         RAILS_DEFAULT_LOGGER.debug(Handcar::TraceLine.new(
-            :number => n,
-            :type   => 'stack',
-            :text   => frame).to_s)
+            :number     => n,
+            :pid        => pid,
+            :tid        => tid,
+            :controller => controller,
+            :action     => action,
+            :type       => 'stack',
+            :text       => frame).to_s)
       end
     end
   end

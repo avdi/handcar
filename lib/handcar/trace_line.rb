@@ -17,8 +17,12 @@ module Handcar
       new(line)
     end
 
+    def self.parseable?(line)
+      line.index(GLOBAL_PREFIX) == 0
+    end
+
     GLOBAL_PREFIX = '[HANDCAR]'
-    LINE_PATTERN = %r[^#{Regexp.escape(GLOBAL_PREFIX)} (..) (\d+) (\d+) (\w+) (\w+) (.*)$]
+    LINE_PATTERN = %r[^#{Regexp.escape(GLOBAL_PREFIX)} (..) (\d+) (\d+) (\d+) (\d+) (\w+) (\w+) (.*)$]
 
     def initialize(line_or_fields)
       self.version    = 0
@@ -33,7 +37,7 @@ module Handcar
     end
 
     def to_s
-      "#{GLOBAL_PREFIX} #{type_prefix} #{version} #{number} #{controller} #{action} #{text}"
+      "#{GLOBAL_PREFIX} #{type_prefix} #{version} #{number} #{pid} #{tid} #{controller} #{action} #{text}"
     end
 
     private
@@ -49,8 +53,10 @@ module Handcar
         self.type       = deduce_type(match_data[1])
         self.version    = match_data[2].to_i
         self.number     = match_data[3].to_i
-        self.controller = match_data[4]
-        self.action     = match_data[5]
+        self.pid        = match_data[4].to_i
+        self.tid        = match_data[5].to_i
+        self.controller = match_data[6]
+        self.action     = match_data[7]
         self.text       = match_data[-1]
       else
         raise ArgumentError,
