@@ -1,0 +1,76 @@
+handcar
+    by Avdi Grimm
+    FIXME (url)
+
+== DESCRIPTION:
+
+A step up from debugging your Rails apps with with 'puts' and 'raise'.
+
+Handcar emits specially formatted trace lines into your Rails log files, along
+with backtrace information.  The 'handcar' executable scrapes your log files for
+these trace lines, so you can see whether, and when, they are being hit.  It can
+do this in real-time, a la "tail -f".
+
+== FEATURES/PROBLEMS:
+
+* FIXME (list of features or problems)
+
+== SYNOPSIS:
+
+Anywhere in your rails app:
+
+  hc_trace(foo)
+
+On the command line:
+  
+  $ handcar
+  Processing SomeController#some_action (for 127.0.0.1 at 02/25/2009 15:12) [GET]
+  _/_ 123 _\_ ** foo
+  Completed in 0.95968 (1 reqs/sec) | Rendering: 0.35874 (37%) | DB: 0.27625 (28%) | 200 OK [http://localhost/some_controller/some_action]
+
+  $ handcar -n 123 -t
+  _/_ 123 _\_ ** foo
+  _/_ 123 _\_ >> file1.rb:123
+  _/_ 123 _\_ >> file2.rb:456
+  _/_ 123 _\_ >> file3.rb:789
+
+== FUTURE:
+
+* I'd love to add a tiny little web server that would serve up a nicely
+  formatted real-time view of traces, with the ability to drill-down and get
+  backtrace info.
+* A "tag" argument for hc_trace() that would enable better filtering
+
+== REQUIREMENTS:
+
+* The "main" gem
+* A reasonably complete *NIX userspace with programs like "grep" and "tail" available.
+
+== INSTALL:
+
+* FIXME (sudo gem install, anything else)
+
+== LICENSE:
+
+(The MIT License)
+
+Copyright (c) 2008 Avdi Grimm
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+'Software'), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

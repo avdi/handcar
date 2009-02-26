@@ -1,0 +1,87 @@
+#!/usr/bin/env ruby
+
+require File.expand_path(
+    File.join(File.dirname(__FILE__), %w[.. lib handcar]))
+
+require 'rubygems'
+require 'main'
+
+trap("QUIT") do
+  exit 0
+end
+
+Main do
+  PREFIX_PATTERN    = '_/_ '
+  NUM_PATTERN       = '[0-9]\\+'
+  MAIN_PATTERN      = ' _\\\\_ '
+  HEAD_PATTERN      = MAIN_PATTERN + ' \*\* '
+  STACK_PATTERN     = MAIN_PATTERN + ' >> '
+  REQ_START_PATTERN = '^Processing [^ ]\+'
+  REQ_END_PATTERN   = '^Completed'
+
+  description <<-DESC
+    Scrape Rails logs for traces generated with hc_trace()
+  DESC
+
+  option('trace', 't') do
+    description 'Include stack traces'
+    cast :bool
+  end
+
+  option('num=NUM', 'n') do
+    description "Only show trace #NUM"
+    cast :int
+  end
+
+  option('follow', 'f') do
+    description "Follow log as it grows (like 'tail -f')"
+    cast :bool
+  end
+
+  option('logfile=FILE', 'l') do
+    description "Explicitly specify the path to the log file to scrape"
+    cast :string
+  end
+
+  option('requests', 'r') do
+    description "Include request context in output"
+    cast :bool
+    default false
+  end
+
+  environment('RAILS_ENV') do
+    description 'The Rails environment (determines log file to use)'
+    default 'development'
+  end
+
+  def run
+    file = if params[:logfile].given?
+             params[:logfile].value
+           else
+             File.join('log', params['RAILS_ENV'].value + '.log')
+           end
+    pattern = PREFIX_PATTERN
+    pattern += if params[:num].given?
+                 params[:num].value.to_s
+               else
+                 NUM_PATTERN
+               end
+    pattern += if params[:trace].value
+                 MAIN_PATTERN
+               else
+                 HEAD_PATTERN
+               end
+    pattern += '.*'
+    patterns = if params[:requests].value
+                 "\\(#{pattern}\\)\\|\\(#{REQ_START_PATTERN}\\)\\|\\(#{REQ_END_PATTERN}\\)"
+               else
+                 pattern
+               end
+    grep_flags = "--only-matching -e"
+    tail_flags = params[:follow].value ? "-f" : ""
+    system("tail #{tail_flags} -n 1000 #{file} | grep #{grep_flags} '#{patterns}' -")
+    exit_success!
+  end
+end
+
+# EOF
