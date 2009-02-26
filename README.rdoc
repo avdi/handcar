@@ -1,6 +1,6 @@
 handcar
     by Avdi Grimm
-    FIXME (url)
+    http://github.com/avdi/handcar
 
 == DESCRIPTION:
 
