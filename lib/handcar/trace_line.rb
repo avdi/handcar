@@ -1,6 +1,17 @@
 module Handcar
-  TraceLine = Struct.new(:number, :type, :pid, :tid, :reqnum, :controller, :action, :tag,
-    :metrics, :text) do
+  TraceLine = Struct.new(
+    :version,                   # Trace format version
+    :number,                    # Trace number
+    :type,                      # E.g. user, stack, request, etc.
+    :pid,                       # Process ID
+    :tid,                       # Thread ID
+    :reqnum,                    # Request Number (if in a request)
+    :controller,                # Controller Name (if any)
+    :action,                    # Action Name (if any)
+    :tag,                       # Arbitrary tag for categorization
+    :metrics,                   # Arbitrary key => value fields
+    :text                       # Body text of trace
+    ) do
 
     def self.parse(line)
       new(line)
