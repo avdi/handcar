@@ -17,9 +17,13 @@ module Handcar
       new(line)
     end
 
-    LINE_PATTERN = %r[^_/_ (\d+) _\\_ (..) (.*)$]
+    GLOBAL_PREFIX = '[HANDCAR]'
+    LINE_PATTERN = %r[^#{Regexp.escape(GLOBAL_PREFIX)} (..) (\d+) (\d+) (\w+) (\w+) (.*)$]
 
     def initialize(line_or_fields)
+      self.version    = 0
+      self.controller = 'none'
+      self.action     = 'none'
       case line_or_fields
       when String then init_from_line(line_or_fields)
       when Hash   then init_from_fields(line_or_fields)
@@ -27,6 +31,12 @@ module Handcar
                  "line_or_fields must be String or Hash (#{line_or_fields.inspect})"
       end
     end
+
+    def to_s
+      "#{GLOBAL_PREFIX} #{type_prefix} #{version} #{number} #{controller} #{action} #{text}"
+    end
+
+    private
 
     def init_from_fields(fields)
       fields.each_pair do |key, value|
@@ -36,19 +46,18 @@ module Handcar
 
     def init_from_line(line)
       if(match_data = LINE_PATTERN.match(line))
-        self.number = match_data[1].to_i
-        self.type   = deduce_type(match_data[2])
-        self.text   = match_data[3]
+        self.type       = deduce_type(match_data[1])
+        self.version    = match_data[2].to_i
+        self.number     = match_data[3].to_i
+        self.controller = match_data[4]
+        self.action     = match_data[5]
+        self.text       = match_data[-1]
       else
-        raise ArgumentError, "Unrecognized trace format: '#{line}'"
+        raise ArgumentError,
+              "Unrecognized trace format: '#{line}'; " \
+              "Expecting #{LINE_PATTERN}"
       end
     end
-
-    def to_s
-      "_/_ #{number} _\\_ #{type_prefix} #{text}"
-    end
-
-    private
 
     def deduce_type(prefix)
       case prefix
