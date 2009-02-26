@@ -22,7 +22,7 @@ module Handcar
     end
 
     GLOBAL_PREFIX = '[HANDCAR]'
-    LINE_PATTERN = %r[^#{Regexp.escape(GLOBAL_PREFIX)} (..) (\d+) (\d+) (\d+) (\d+) (\w+) (\w+) (.*)$]
+    LINE_PATTERN = %r|^#{Regexp.escape(GLOBAL_PREFIX)} (..) (\d+) (\d+) (\d+) (\d+) (\w+) (\w+) (.*)$|
 
     def initialize(line_or_fields)
       self.version    = 0

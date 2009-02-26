@@ -5,10 +5,7 @@ require File.expand_path(
 
 require 'rubygems'
 require 'main'
-
-trap("QUIT") do
-  exit 0
-end
+require 'file/tail'
 
 Main do
   PREFIX_PATTERN    = '_/_ '
@@ -43,12 +40,6 @@ Main do
     cast :string
   end
 
-  option('requests', 'r') do
-    description "Include request context in output"
-    cast :bool
-    default false
-  end
-
   environment('RAILS_ENV') do
     description 'The Rails environment (determines log file to use)'
     default 'development'
@@ -60,26 +51,43 @@ Main do
            else
              File.join('log', params['RAILS_ENV'].value + '.log')
            end
-    pattern = PREFIX_PATTERN
-    pattern += if params[:num].given?
-                 params[:num].value.to_s
-               else
-                 NUM_PATTERN
-               end
-    pattern += if params[:trace].value
-                 MAIN_PATTERN
-               else
-                 HEAD_PATTERN
-               end
-    pattern += '.*'
-    patterns = if params[:requests].value
-                 "\\(#{pattern}\\)\\|\\(#{REQ_START_PATTERN}\\)\\|\\(#{REQ_END_PATTERN}\\)"
-               else
-                 pattern
-               end
-    grep_flags = "--only-matching -e"
-    tail_flags = params[:follow].value ? "-f" : ""
-    system("tail #{tail_flags} -n 1000 #{file} | grep #{grep_flags} '#{patterns}' -")
+
+    filters = []
+
+    if params[:num].given?
+      filters << lambda do |trace|
+        trace.number == params[:num].value
+      end
+    end
+
+    unless params[:trace].value
+      filters << lambda do |trace|
+        trace.type == 'user'
+      end
+    end
+
+    File.open(file) do |log|
+      log.extend(File::Tail)
+      catch(:quit) do
+        trap("INT") do
+          throw :quit
+        end
+
+        log.tail do |line|
+          if Handcar::TraceLine.parseable?(line)
+            begin
+              trace = Handcar::TraceLine.parse(line)
+              if filters.all?{|f| f.call(trace)}
+                puts line
+              end
+            rescue ArgumentError
+              # Guess it wasn't parseable after all...
+              puts "<Unparseable>"
+            end
+          end
+        end
+      end
+    end
     exit_success!
   end
 end

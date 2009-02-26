@@ -1,1 +1,1 @@
-ApplicationController.around_filter(Handcar::ActionFilter.new)
+ActionController::Base.around_filter(Handcar::ActionFilter.new(Handcar::Context.instance))

@@ -1,11 +1,11 @@
 Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-_/_ 3 _\_ ** First trace
-_/_ 3 _\_ >> file:123
+[HANDCAR] ** 0 1 123 456 foo bar First trace
+[HANDCAR] >> 0 1 123 456 foo bar file:123
 Vivamus diam lectus, consectetur vitae, pharetra eu, molestie vel, lorem. 
-_/_ 3 _\_ >> file:456
+[HANDCAR] >> 0 1 123 456 foo bar file:456
 Suspendisse ullamcorper urna quis sapien. 
 Nullam quis dui. 
-_/_ 3 _\_ >> file:789
+[HANDCAR] >> 0 1 123 456 foo bar file:789
 Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. 
 Pellentesque suscipit dictum orci. 
 Processing SomeController#some_action (for 127.0.0.1 at 02/25/2009 15:12) [GET]
@@ -14,18 +14,18 @@ Processing SomeController#some_action (for 127.0.0.1 at 02/25/2009 15:12) [GET]
   [4;35;1mUser Columns (0.004630)[0m   [0mSHOW FIELDS FROM `users`[0m
   [4;36;1mUser Load (0.002916)[0m   [0;1mSELECT * FROM `users` WHERE (`users`.`id` = 1) AND (users.deleted_at IS NULL OR users.deleted_at > '2009-02-25 15:12:19') [0m
 Completed in 0.95968 (1 reqs/sec) | Rendering: 0.35874 (37%) | DB: 0.27625 (28%) | 200 OK [http://localhost/some_controller/some_action]
-_/_ 123 _\_ ** Second trace
+[HANDCAR] ** 0 2 123 456 foo buz Second trace
 Pellentesque nec sapien. 
 Sed pretium, erat ut rhoncus viverra, lectus lectus porttitor odio, eu blandit nunc dolor vel sapien. 
-_/_ 123 _\_ >> file:987
+[HANDCAR] >> 0 2 123 456 foo buz file:987
 Integer volutpat. 
 Morbi consectetur quam at leo. 
 Donec massa neque, tristique ut, sodales vel, vehicula ac, justo. 
-_/_ 123 _\_ >> file:987
+[HANDCAR] >> 0 2 123 456 foo buz file:987
 Nulla et odio. 
-_/_ 123 _\_ >> file:654
+[HANDCAR] >> 0 2 123 456 foo buz file:654
 Proin risus ligula, ullamcorper sit amet, congue quis, tempor nec, urna. 
 Vivamus molestie velit id velit. 
 Nam at enim et ligula viverra molestie. 
 Quisque nec arcu.
-_/_ 123 _\_ >> file:321
+[HANDCAR] >> 0 2 123 456 foo buz file:321
