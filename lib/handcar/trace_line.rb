@@ -13,6 +13,16 @@ module Handcar
     :text                       # Body text of trace
     ) do
 
+    TYPE_TO_PREFIX_MAP = {
+      'user'    => '**',
+      'stack'   => '>>',
+      'request' => '--'
+    }
+
+    PREFIX_TO_TYPE_MAP = TYPE_TO_PREFIX_MAP.invert
+
+    TYPES = TYPE_TO_PREFIX_MAP.keys
+
     def self.parse(line)
       new(line)
     end
@@ -33,6 +43,9 @@ module Handcar
       when Hash   then init_from_fields(line_or_fields)
       else raise ArgumentError,
                  "line_or_fields must be String or Hash (#{line_or_fields.inspect})"
+      end
+      unless TYPES.include?(type)
+        raise ArgumentError, "Unknown type: #{type.inspect}"
       end
     end
 
@@ -66,20 +79,14 @@ module Handcar
     end
 
     def deduce_type(prefix)
-      case prefix
-      when "**" then 'user'
-      when ">>" then 'stack'
-      when "--" then 'request'
-      else raise ArgumentError, "Unknown prefix: #{prefix}"
+      PREFIX_TO_TYPE_MAP.fetch(prefix) do
+        raise ArgumentError, "Unknown prefix: #{prefix}"
       end
     end
 
     def type_prefix
-      case type
-      when 'user'    then '**'
-      when 'stack'   then '>>'
-      when 'request' then '--'
-      else raise ArgumentError, "Unknown type: #{type}"
+      TYPE_TO_PREFIX_MAP.fetch(type) do
+        raise ArgumentError, "Unknown type: #{type}"
       end
     end
   end

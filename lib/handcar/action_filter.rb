@@ -8,14 +8,9 @@ class Handcar::ActionFilter
     @context.action     = controller.action_name
     @context.with_request_context do |request_number|
       begin
-        @context.trace!(
-          :type => 'request',
-          :text => "BEGIN Request ##{request_number}")
-        yield
-      ensure
-        @context.trace!(
-          :type => 'request',
-          :text => "END Request ##{request_number}")
+        Handcar::RequestEvent.new(request_number).record!(@context) do
+          yield
+        end
       end
     end
   ensure

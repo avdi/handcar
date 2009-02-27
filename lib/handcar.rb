@@ -63,10 +63,8 @@ Handcar.require_all_libs_relative_to(__FILE__)
 module ::Kernel
   def hc_trace(text)
     Handcar::Context.instance.with_trace_context do |context|
-      context.trace!(text)
-      Kernel.caller.each do |frame|
-        context.trace!(:type => 'stack', :text => frame).to_s
-      end
+      Handcar::UserEvent.new(text).record!(context)
+      Handcar::StackTraceEvent.new(Kernel.caller).record!(context)
     end
   end
 end

@@ -22,7 +22,7 @@ describe Handcar do
 
     it "should log trace and backtrace info" do
       @context.should_receive(:trace!).
-        with("foo").ordered
+        with(:type => 'user', :text => "foo").ordered
       @context.should_receive(:trace!).
         with(:type => 'stack', :text => "yabba").ordered
       @context.should_receive(:trace!).
