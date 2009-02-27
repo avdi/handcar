@@ -6,4 +6,24 @@ describe Handcar::TraceLine do
     Handcar::TraceLine.parseable?("[HANDCAR] yadda yadda").should be_true
     Handcar::TraceLine.parseable?("[CARHAND] blah blah").should_not be_true
   end
+
+  describe "given options for a request trace" do
+    before :each do
+      @it = Handcar::TraceLine.new(:type => "request")
+    end
+
+    it "should format the trace with a prefix of --" do
+      @it.to_s.split[1].should == "--"
+    end
+  end
+
+  describe "given a request trace to parse" do
+    before :each do
+      @it = Handcar::TraceLine.parse("[HANDCAR] -- 0 1 1 1 1 foo bar hello")
+    end
+
+    it "should interpret it as a request trace" do
+      @it.type.should be == 'request'
+    end
+  end
 end

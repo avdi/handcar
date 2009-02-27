@@ -69,14 +69,16 @@ module Handcar
       case prefix
       when "**" then 'user'
       when ">>" then 'stack'
+      when "--" then 'request'
       else raise ArgumentError, "Unknown prefix: #{prefix}"
       end
     end
 
     def type_prefix
       case type
-      when 'user'  then '**'
-      when 'stack' then '>>'
+      when 'user'    then '**'
+      when 'stack'   then '>>'
+      when 'request' then '--'
       else raise ArgumentError, "Unknown type: #{type}"
       end
     end
