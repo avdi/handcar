@@ -22,8 +22,21 @@ def reset_global_const(name, value)
   Object.const_set(name, value)
 end
 
-def traceline(text)
-  %r(_/_ \d+ _\\_ #{text})
+class StubLogger < Array
+  def debug(text)
+    self << text
+  end
+end
+
+describe 'handcar', :shared => true do
+  before :each do
+    @logger = StubLogger.new
+    reset_global_const(:RAILS_DEFAULT_LOGGER, @logger)
+  end
+
+  def trace(index)
+    Handcar::TraceLine.parse(@logger[index])
+  end
 end
 
 # EOF

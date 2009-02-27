@@ -17,7 +17,7 @@ task :default => 'spec:run'
 PROJ.name = 'handcar'
 PROJ.authors = 'Avdi Grimm'
 PROJ.email = 'avdi@avdi.org'
-PROJ.url = 'FIXME (project homepage)'
+PROJ.url = 'http://github.com/avdi/handcar'
 PROJ.version = Handcar::VERSION
 PROJ.rubyforge.name = 'handcar'
 PROJ.readme_file = 'README.rdoc'
@@ -43,5 +43,8 @@ PROJ.ann.email[:authtype] = :plain
 
 # Notes
 PROJ.notes.extensions << '.rdoc'
+
+depend_on 'file-tail'
+depend_on 'main'
 
 # EOF

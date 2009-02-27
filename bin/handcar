@@ -30,9 +30,16 @@ Main do
     cast :int
   end
 
-  option('follow', 'f') do
+  option('requests=[show_requests]', 'r') do
+    description "Show requests (beginning and end)"
+    default true
+    cast :bool
+  end
+
+  option('follow=[follow]', 'f') do
     description "Follow log as it grows (like 'tail -f')"
     cast :bool
+    default true
   end
 
   option('logfile=FILE', 'l') do
@@ -66,8 +73,15 @@ Main do
       end
     end
 
+    unless params[:requests].value
+      filters << lambda do |trace|
+        trace.type != 'request'
+      end
+    end
+
     File.open(file) do |log|
       log.extend(File::Tail)
+      log.return_if_eof = (not params[:follow].value)
       catch(:quit) do
         trap("INT") do
           throw :quit
