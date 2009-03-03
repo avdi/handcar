@@ -8,15 +8,7 @@ require 'main'
 require 'file/tail'
 
 Main do
-  PREFIX_PATTERN    = '_/_ '
-  NUM_PATTERN       = '[0-9]\\+'
-  MAIN_PATTERN      = ' _\\\\_ '
-  HEAD_PATTERN      = MAIN_PATTERN + ' \*\* '
-  STACK_PATTERN     = MAIN_PATTERN + ' >> '
-  REQ_START_PATTERN = '^Processing [^ ]\+'
-  REQ_END_PATTERN   = '^Completed'
 
-  description <<-DESC
     Scrape Rails logs for traces generated with hc_trace()
   DESC
 
@@ -86,15 +78,15 @@ Main do
         end
 
         log.tail do |line|
-          if Handcar::TraceLine.parseable?(line)
+          if Handcar::TraceLine.recognizable?(line)
             begin
               trace = Handcar::TraceLine.parse(line)
               if filters.all?{|f| f.call(trace)}
                 puts line
               end
             rescue ArgumentError
-              # Guess it wasn't parseable after all...
-              puts "<Unparseable>"
+              # Guess it wasn't recognizable after all...
+              puts "<Unrecognizable>"
             end
           end
         end

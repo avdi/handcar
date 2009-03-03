@@ -56,6 +56,12 @@ module Handcar
     end
   end
 
+  module Necessities
+    def self.included(other)
+      Ick::Returning.belongs_to(other)
+    end
+  end
+
 end  # module Handcar
 
 Handcar.require_all_libs_relative_to(__FILE__)

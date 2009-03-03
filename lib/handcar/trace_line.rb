@@ -27,7 +27,7 @@ module Handcar
       new(line)
     end
 
-    def self.parseable?(line)
+    def self.recognizable?(line)
       line.index(GLOBAL_PREFIX) == 0
     end
 
