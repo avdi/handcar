@@ -47,37 +47,47 @@ class Handcar::LogScraper
   end
 
   def filtered_lines
-    @lines.select{ |line|
-      case included_types
+    @lines.select(&method(:filter_by_type)).
+      select(&method(:filter_by_number)).
+      select(&method(:filter_by_pid))
+  end
+
+  private
+
+  def filter_by_type(line)
+    case included_types
+    when :all then true
+    when Array then
+      included_types.include?(line.type)
+    else
+      raise "Invalid value for included_types: #{included_types.inspect}"
+    end
+  end
+
+  def filter_by_number(line)
+    case selected_numbers
+    when :all then true
+    when Range then
+      selected_numbers.include?(line.number)
+    when Integer then
+      selected_numbers == line.number
+    else
+      raise "Invalid value for selected_numbers: #{selected_numbers.inspect}"
+    end
+  end
+
+  def filter_by_pid(line)
+    case line.pid
+    when Integer
+      case selected_pids
       when :all then true
-      when Array then
-        included_types.include?(line.type)
+      when :last then
+        line.pid == @last_pid
       else
-        raise "Invalid value for included_types: #{included_types.inspect}"
+        Array(selected_pids).include?(line.pid)
       end
-    }.select{|line|
-      case selected_numbers
-      when :all then true
-      when Range then
-        selected_numbers.include?(line.number)
-      when Integer then
-        selected_numbers == line.number
-      else
-        raise "Invalid value for selected_numbers: #{selected_numbers.inspect}"
-      end
-    }.select{ |line|
-      case line.pid
-      when Integer
-        case selected_pids
-        when :all then true
-        when :last then
-          line.pid == @last_pid
-        else
-          Array(selected_pids).include?(line.pid)
-        end
-      else
-        true
-      end
-    }
+    else
+      true
+    end
   end
 end

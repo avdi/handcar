@@ -231,5 +231,15 @@ describe Handcar::LogScraper do
         @it.filtered_lines.should be == @traces
       end
     end
+
+    context "when a single PID is slected" do
+      before :each do
+        @it.selected_pids = 333
+      end
+
+      it "should include only the selected PID in the filtered view" do
+        @it.filtered_lines.should be == [@trace2, @trace3]
+      end
+    end
   end
 end
