@@ -242,4 +242,43 @@ describe Handcar::LogScraper do
       end
     end
   end
+  context "given traces from multiple requests" do
+    before :each do
+      @traces = [
+        @trace2 = stub("UserTrace2",
+          :type => 'user', :reqnum => 111).as_null_object,
+        @trace3 = stub("UserTrace3",
+          :type => 'user', :reqnum => 222).as_null_object,
+        @trace4 = stub("UserTrace4",
+          :type => 'user', :reqnum => 222).as_null_object,
+        @trace5 = stub("UserTrace5",
+          :type => 'user', :reqnum => 333).as_null_object,
+      ]
+      @inputs = ["LINE1", "LINE2", "LINE3", "LINE4"]
+      Handcar::TraceLine.stub!(:recognizable?).and_return(true)
+      Handcar::TraceLine.stub!(:parse).and_return(*@traces)
+      @inputs.each do |line| @it << line end
+    end
+
+    it "should have all requests selected by default" do
+      @it.selected_request.should be == :all
+    end
+
+    context "by default" do
+      it "should select all traces in the filtered view" do
+        @it.filtered_lines.should be == [@trace2, @trace3, @trace4, @trace5]
+      end
+    end
+
+    context "with a single request selected" do
+      before :each do
+        @it.selected_request = 222
+      end
+
+      it "should include only the selected request in the filtered view" do
+        @it.filtered_lines.should == [@trace3, @trace4]
+      end
+    end
+
+  end
 end

@@ -9,7 +9,6 @@ module Handcar
     :controller,                # Controller Name (if any)
     :action,                    # Action Name (if any)
     :tag,                       # Arbitrary tag for categorization
-    :metrics,                   # Arbitrary key => value fields
     :text                       # Body text of trace
     ) do
 
