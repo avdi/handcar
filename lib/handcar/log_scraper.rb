@@ -1,5 +1,6 @@
 require 'ick'
 require 'forwardable'
+require 'fattr'
 
 class Handcar::LogScraper
   include Handcar::Necessities
@@ -21,11 +22,13 @@ class Handcar::LogScraper
     alias push <<
   end
 
-  attr_reader   :lines
-  attr_accessor :included_types
-  attr_accessor :selected_numbers
-  attr_accessor :selected_pids
-  attr_accessor :selected_request
+  attr_reader :lines
+
+  fattr :included_types   => ['user']
+  fattr :selected_numbers => :all
+  fattr :selected_pids    => :last
+  fattr :selected_request => :all
+
   def_delegator :@lines, :max_size=, :window_size=
   def_delegator :@lines, :max_size,  :window_size
 
@@ -38,24 +41,41 @@ class Handcar::LogScraper
     @last_pid         = nil
   end
 
-  def <<(log_line)
+  def interpret(log_line)
     returning self do
       if TraceLine.recognizable?(log_line)
         @lines << returning(TraceLine.parse(log_line)) do |traceline|
+          yield self, traceline if block_given? && filters.match?(traceline)
           @last_pid = traceline.pid if traceline.pid
         end
       end
     end
   end
 
+  alias << interpret
+
   def filtered_lines
-    @lines.select(&method(:filter_by_type)).
-      select(&method(:filter_by_number)).
-      select(&method(:filter_by_pid)).
-      select(&method(:filter_by_request))
+    filters.inject(@lines) do |lines, filter|
+      lines.select(&filter)
+    end
   end
 
   private
+
+  module FilterChain
+    def match?(trace_line)
+      all?{|f| f.call(trace_line)}
+    end
+  end
+
+  def filters
+    [
+      method(:filter_by_type),
+      method(:filter_by_number),
+      method(:filter_by_pid),
+      method(:filter_by_request)
+    ].extend FilterChain
+  end
 
   def filter_by_type(line)
     case included_types

@@ -254,18 +254,28 @@ describe Handcar::LogScraper do
         @trace5 = stub("UserTrace5",
           :type => 'user', :reqnum => 333).as_null_object,
       ]
-      @inputs = ["LINE1", "LINE2", "LINE3", "LINE4"]
+      @inputs  = ["LINE1", "LINE2", "LINE3", "LINE4"]
+      @outputs = []
       Handcar::TraceLine.stub!(:recognizable?).and_return(true)
       Handcar::TraceLine.stub!(:parse).and_return(*@traces)
-      @inputs.each do |line| @it << line end
+    end
+
+    def do_scrape
+      @inputs.each do |line|
+        @it.interpret line do |scraper, trace_line|
+          @outputs << trace_line
+        end
+      end
     end
 
     it "should have all requests selected by default" do
+      do_scrape
       @it.selected_request.should be == :all
     end
 
     context "by default" do
       it "should select all traces in the filtered view" do
+        do_scrape
         @it.filtered_lines.should be == [@trace2, @trace3, @trace4, @trace5]
       end
     end
@@ -276,9 +286,15 @@ describe Handcar::LogScraper do
       end
 
       it "should include only the selected request in the filtered view" do
+        do_scrape
         @it.filtered_lines.should == [@trace3, @trace4]
       end
-    end
 
+      it "should output only the selected request" do
+        do_scrape
+        @outputs.should == [@trace3, @trace4]
+      end
+
+    end
   end
 end
