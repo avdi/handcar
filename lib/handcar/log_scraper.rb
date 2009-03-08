@@ -26,7 +26,7 @@ class Handcar::LogScraper
 
   fattr :included_types   => ['user']
   fattr :selected_numbers => :all
-  fattr :selected_pids    => :last
+  fattr :selected_pids    => :all
   fattr :selected_request => :all
 
   def_delegator :@lines, :max_size=, :window_size=
@@ -34,11 +34,6 @@ class Handcar::LogScraper
 
   def initialize
     @lines            = BoundedQueue.new(100)
-    @included_types   = ['user']
-    @selected_numbers = :all
-    @selected_pids    = :last
-    @selected_request = :all
-    @last_pid         = nil
   end
 
   def interpret(log_line)
@@ -46,7 +41,6 @@ class Handcar::LogScraper
       if TraceLine.recognizable?(log_line)
         @lines << returning(TraceLine.parse(log_line)) do |traceline|
           yield self, traceline if block_given? && filters.match?(traceline)
-          @last_pid = traceline.pid if traceline.pid
         end
       end
     end
@@ -104,8 +98,6 @@ class Handcar::LogScraper
     when Integer
       case selected_pids
       when :all then true
-      when :last then
-        line.pid == @last_pid
       else
         Array(selected_pids).include?(line.pid)
       end

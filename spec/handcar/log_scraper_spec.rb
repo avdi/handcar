@@ -3,110 +3,50 @@ require Pathname(__FILE__).ascend{|d| h=d+'spec_helper.rb'; break h if h.file?}
 
 describe Handcar::LogScraper do
   before :each do
-    @line1      = stub("LINE 1")
-    @line2      = stub("LINE 2")
-    @traceline1 = stub("TraceLine 1").as_null_object
-    @traceline2 = stub("TraceLine 2").as_null_object
-    Handcar::TraceLine.stub!(:parse).and_return(@traceline1, @traceline2)
+    @traceline = stub("TraceLine").as_null_object
+    Handcar::TraceLine.stub!(:parse).and_return(@traceline)
+    @inputs      = [stub("Raw Log Line")]
+    @outputs     = []
     @it = Handcar::LogScraper.new
   end
 
-  context "given a a recognizable log line" do
+  def do_scrape
+    @inputs.each do |input|
+      @it.interpret(input) do |scraper, traceline|
+        @outputs << traceline
+      end
+    end
+  end
+
+  context "given a recognizable but non-matching log line" do
     before :each do
       Handcar::TraceLine.stub!(:recognizable?).and_return(true)
-      @it << @line1
+      do_scrape
     end
 
-    specify { @it.should have(1).lines }
-
-  end
-
-  context "given two lines" do
-    before :each do
-      Handcar::TraceLine.stub!(:recognizable?).and_return(true, true)
-      @it << @line1 << @line2
-    end
-
-    specify {  @it.should have(2).lines }
-
-    it "should parse the lines into TraceLines" do
-      @it.lines[0].should equal(@traceline1)
-      @it.lines[1].should equal(@traceline2)
+    it "should not generate a trace line object" do
+      @outputs.should be_empty
     end
   end
 
-  context "given a recognizable line and an unrecognizable line" do
+
+  context "given an unrecognizable line" do
     before :each do
-      Handcar::TraceLine.stub!(:recognizable?).and_return(false, true)
-      @it << @line1 << @line2
+      Handcar::TraceLine.stub!(:recognizable?).and_return(false)
+      do_scrape
     end
 
-    specify { @it.should have(1).lines }
-
-    it "it should have a trace line for the recognizable line" do
-      @it.lines[0].should equal(@traceline1)
-    end
-  end
-
-  context "with a window of three lines" do
-    before :each do
-      @it.window_size = 3
-    end
-
-    context "when given four lines of input" do
-      before :each do
-        @input = ["LINE 1", "LINE 2", "LINE 3", "LINE 4"]
-        @traces = @input.map{|l| stub("TraceLine #{l}").as_null_object }
-        Handcar::TraceLine.stub!(:parse).and_return(*@traces)
-        Handcar::TraceLine.stub!(:recognizable?).and_return(true)
-        @input.each do |line|
-          @it << line
-        end
-      end
-
-      it "should retain three lines" do
-        @it.should have(3).lines
-      end
-
-      it "should retain the LAST three lines" do
-        @it.lines.should == @traces[1..-1]
-      end
-    end
-
-  end
-
-  context "with a window of two lines" do
-    before :each do
-      @it.window_size = 2
-    end
-
-    context "given four lines of input" do
-      before :each do
-        @input = ["LINE 1", "LINE 2", "LINE 3", "LINE 4"]
-        @traces = @input.map{|l| stub("TraceLine #{l}").as_null_object }
-        Handcar::TraceLine.stub!(:parse).and_return(*@traces)
-        Handcar::TraceLine.stub!(:recognizable?).and_return(true)
-        @input.each do |line|
-          @it << line
-        end
-      end
-
-      it "should retain two lines" do
-        @it.should have(2).lines
-      end
-
-      it "should retain the LAST two lines" do
-        @it.lines.should == @traces[2..-1]
-      end
+    it "should not generate a traceline object" do
+      @outputs.should be_empty
     end
   end
 
   context "given a variety of valid trace lines" do
     before :each do
       @traces = [
-        @user_trace = stub("UserTrace",
+       @user_trace = stub("UserTrace",
           :type => 'user').as_null_object,
-        @stack_trace = stub("StackTrace",
+       @stack_trace = stub("StackTrace",
           :type => 'stack').as_null_object,
         @request_trace = stub("RequestTrace",
           :type => 'request').as_null_object,
@@ -116,12 +56,12 @@ describe Handcar::LogScraper do
       @inputs = ["LINE1", "LINE2", "LINE3", "LINE4"]
       Handcar::TraceLine.stub!(:recognizable?).and_return(true)
       Handcar::TraceLine.stub!(:parse).and_return(*@traces)
-      @inputs.each do |line| @it << line end
     end
 
     context "by default" do
       it "should include only 'user' traces in the filtered view" do
-        @it.filtered_lines.should == [@user_trace]
+        do_scrape
+        @outputs.should == [@user_trace]
       end
     end
 
@@ -131,7 +71,8 @@ describe Handcar::LogScraper do
       end
 
       it "should include user and stack traces in filtered view" do
-        @it.filtered_lines.should == [@user_trace, @stack_trace]
+        do_scrape
+        @outputs.should == [@user_trace, @stack_trace]
       end
     end
 
@@ -141,15 +82,12 @@ describe Handcar::LogScraper do
       end
 
       it "should include all trace types in filtered view" do
-        @it.filtered_lines.should == @traces
+        do_scrape
+        @outputs.should == @traces
       end
     end
   end
 
-
-  it "should have a default window size of 100" do
-    @it.window_size.should be == 100
-  end
 
   context "given three numbered traces" do
     before :each do
@@ -164,11 +102,11 @@ describe Handcar::LogScraper do
       @inputs = ["LINE1", "LINE2", "LINE3"]
       Handcar::TraceLine.stub!(:recognizable?).and_return(true)
       Handcar::TraceLine.stub!(:parse).and_return(*@traces)
-      @inputs.each do |line| @it << line end
     end
 
     it "should include all in the filtered output by default" do
-      @it.filtered_lines.should == @traces
+      do_scrape
+      @outputs.should == @traces
     end
 
     context "with trace numbers 0-123 selected" do
@@ -177,7 +115,8 @@ describe Handcar::LogScraper do
       end
 
       it "should include traces 122..123 in the filtered view" do
-        @it.filtered_lines.should == [@trace122, @trace123]
+        do_scrape
+        @outputs.should == [@trace122, @trace123]
       end
     end
 
@@ -187,7 +126,8 @@ describe Handcar::LogScraper do
       end
 
       it "should include trace 124 in the filtered view" do
-        @it.filtered_lines.should == [@trace124]
+        do_scrape
+        @outputs.should == [@trace124]
       end
     end
 
@@ -197,7 +137,8 @@ describe Handcar::LogScraper do
       end
 
       it "should include just trace 123 in the filtered view" do
-        @it.filtered_lines.should == [@trace123]
+        do_scrape
+        @outputs.should == [@trace123]
       end
     end
   end
@@ -213,22 +154,12 @@ describe Handcar::LogScraper do
       @inputs = ["LINE1", "LINE2", "LINE3", "LINE5"]
       Handcar::TraceLine.stub!(:recognizable?).and_return(true)
       Handcar::TraceLine.stub!(:parse).and_return(*@traces)
-      @inputs.each do |line| @it << line end
     end
 
     context "by default" do
-      it "should include only the later PIDs traces in filtered view" do
-        @it.filtered_lines.should == [@trace4, @trace5]
-      end
-    end
-
-    context "when all PIDs are selected" do
-      before :each do
-        @it.selected_pids = :all
-      end
-
-      it "should include all traces in the filtered view" do
-        @it.filtered_lines.should be == @traces
+      it "should include only all PID's traces in filtered view" do
+        do_scrape
+        @outputs.should == @traces
       end
     end
 
@@ -238,10 +169,12 @@ describe Handcar::LogScraper do
       end
 
       it "should include only the selected PID in the filtered view" do
-        @it.filtered_lines.should be == [@trace2, @trace3]
+        do_scrape
+        @outputs.should be == [@trace2, @trace3]
       end
     end
   end
+
   context "given traces from multiple requests" do
     before :each do
       @traces = [
@@ -260,23 +193,15 @@ describe Handcar::LogScraper do
       Handcar::TraceLine.stub!(:parse).and_return(*@traces)
     end
 
-    def do_scrape
-      @inputs.each do |line|
-        @it.interpret line do |scraper, trace_line|
-          @outputs << trace_line
-        end
-      end
-    end
-
     it "should have all requests selected by default" do
       do_scrape
-      @it.selected_request.should be == :all
+      @it.selected_request.should == :all
     end
 
     context "by default" do
       it "should select all traces in the filtered view" do
         do_scrape
-        @it.filtered_lines.should be == [@trace2, @trace3, @trace4, @trace5]
+        @outputs.should be == [@trace2, @trace3, @trace4, @trace5]
       end
     end
 
@@ -287,7 +212,7 @@ describe Handcar::LogScraper do
 
       it "should include only the selected request in the filtered view" do
         do_scrape
-        @it.filtered_lines.should == [@trace3, @trace4]
+        @outputs.should == [@trace3, @trace4]
       end
 
       it "should output only the selected request" do

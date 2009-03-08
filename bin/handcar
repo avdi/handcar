@@ -49,18 +49,14 @@ Main do
              File.join('log', params['RAILS_ENV'].value + '.log')
            end
 
-    filters = []
+    scraper = Handcar::LogScraper.new
 
     if params[:num].given?
-      filters << lambda do |trace|
-        trace.number == params[:num].value
-      end
+      scraper.selected_numbers = Array(params[:num].value)
     end
 
-    unless params[:trace].given?
-      filters << lambda do |trace|
-        trace.type != 'stack'
-      end
+    if params[:trace].given?
+      scraper.included_types << 'stack'
     end
 
     unless params[:requests].given?
