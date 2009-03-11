@@ -2,51 +2,18 @@ require 'ick'
 require 'forwardable'
 require 'fattr'
 
-class Handcar::LogScraper
+class Handcar::LogFilter
   include Handcar::Necessities
   include Handcar
-  extend Forwardable
-
-  class BoundedQueue < Array
-    attr_accessor :max_size
-
-    def initialize(size)
-      @max_size = size
-    end
-
-    def <<(object)
-      self.shift until size < max_size
-      super(object)
-    end
-
-    alias push <<
-  end
-
-  attr_reader :lines
 
   fattr :included_types   => ['user']
   fattr :selected_numbers => :all
   fattr :selected_pids    => :all
   fattr :selected_request => :all
 
-  def_delegator :@lines, :max_size=, :window_size=
-  def_delegator :@lines, :max_size,  :window_size
-
-  def initialize
-    @lines            = BoundedQueue.new(100)
+  def filter(trace_line)
+    yield self, trace_line if block_given? && filters.match?(trace_line)
   end
-
-  def interpret(log_line)
-    returning self do
-      if TraceLine.recognizable?(log_line)
-        @lines << returning(TraceLine.parse(log_line)) do |traceline|
-          yield self, traceline if block_given? && filters.match?(traceline)
-        end
-      end
-    end
-  end
-
-  alias << interpret
 
   def filtered_lines
     filters.inject(@lines) do |lines, filter|

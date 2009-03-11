@@ -49,7 +49,7 @@ Main do
              File.join('log', params['RAILS_ENV'].value + '.log')
            end
 
-    scraper = Handcar::LogScraper.new
+    scraper = Handcar::LogFilter.new
 
     if params[:num].given?
       scraper.selected_numbers = Array(params[:num].value)

@@ -11,6 +11,17 @@ describe Handcar::LogWindow do
     @it = Handcar::LogWindow.new
   end
 
+  context "given an unrecognizable line" do
+    before :each do
+      Handcar::TraceLine.stub!(:recognizable?).and_return(false)
+      @it << @line1
+    end
+
+    it "should not generate a traceline object" do
+      @it.lines.should be_empty
+    end
+  end
+
   context "given two lines" do
     before :each do
       Handcar::TraceLine.stub!(:recognizable?).and_return(true, true)
